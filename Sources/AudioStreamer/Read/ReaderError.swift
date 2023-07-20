@@ -6,14 +6,14 @@
 //  Copyright © 2018 Ausome Apps LLC. All rights reserved.
 //
 
-import Foundation
 import AudioToolbox
+import Foundation
 
 // MARK: - Reader OSStatus Error Codes
 
-let ReaderReachedEndOfDataError: OSStatus = 932332581
-let ReaderNotEnoughDataError: OSStatus = 932332582
-let ReaderMissingSourceFormatError: OSStatus = 932332583
+let ReaderReachedEndOfDataError: OSStatus = 932_332_581
+let ReaderNotEnoughDataError: OSStatus = 932_332_582
+let ReaderMissingSourceFormatError: OSStatus = 932_332_583
 
 // MARK: - ReaderError
 
@@ -26,12 +26,12 @@ public enum ReaderError: LocalizedError {
     case parserMissingDataFormat
     case reachedEndOfFile
     case unableToCreateConverter(OSStatus)
-    
+
     public var errorDescription: String? {
         switch self {
         case .cannotLockQueue:
             return "Failed to lock queue"
-        case .converterFailed(let status):
+        case let .converterFailed(status):
             return localizedDescriptionFromConverterError(status)
         case .failedToCreateDestinationFormat:
             return "Failed to create a destination (processing) format"
@@ -43,11 +43,11 @@ public enum ReaderError: LocalizedError {
             return "Parser is missing a valid data format"
         case .reachedEndOfFile:
             return "Reached the end of the file"
-        case .unableToCreateConverter(let status):
+        case let .unableToCreateConverter(status):
             return localizedDescriptionFromConverterError(status)
         }
     }
-    
+
     func localizedDescriptionFromConverterError(_ status: OSStatus) -> String {
         switch status {
         case kAudioConverterErr_FormatNotSupported:
@@ -68,12 +68,12 @@ public enum ReaderError: LocalizedError {
             return "Input sample rate out of range"
         case kAudioConverterErr_OutputSampleRateOutOfRange:
             return "Output sample rate out of range"
-#if os(iOS)
-        case kAudioConverterErr_HardwareInUse:
-            return "Hardware is in use"
-        case kAudioConverterErr_NoHardwarePermission:
-            return "No hardware permission"
-#endif
+        #if os(iOS)
+            case kAudioConverterErr_HardwareInUse:
+                return "Hardware is in use"
+            case kAudioConverterErr_NoHardwarePermission:
+                return "No hardware permission"
+        #endif
         default:
             return "Unspecified error"
         }

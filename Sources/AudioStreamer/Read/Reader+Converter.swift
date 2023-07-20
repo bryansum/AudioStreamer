@@ -1,36 +1,30 @@
-//
-//  Reader+Converter.swift
-//  AudioStreamer
-//
-//  Created by Syed Haris Ali on 1/7/18.
-//  Copyright © 2018 Ausome Apps LLC. All rights reserved.
-//
+// Copyright (c) 2023 Locket Labs, Inc.
 
-import Foundation
-import AVFoundation
 import AudioToolbox
+import AVFoundation
+import Foundation
 import os.log
 
 // MARK: - Errors
 
-
-
 // MARK: -
 
-func ReaderConverterCallback(_ converter: AudioConverterRef,
-                             _ packetCount: UnsafeMutablePointer<UInt32>,
-                             _ ioData: UnsafeMutablePointer<AudioBufferList>,
-                             _ outPacketDescriptions: UnsafeMutablePointer<UnsafeMutablePointer<AudioStreamPacketDescription>?>?,
-                             _ context: UnsafeMutableRawPointer?) -> OSStatus {
+func ReaderConverterCallback(
+    _: AudioConverterRef,
+    _ packetCount: UnsafeMutablePointer<UInt32>,
+    _ ioData: UnsafeMutablePointer<AudioBufferList>,
+    _ outPacketDescriptions: UnsafeMutablePointer<UnsafeMutablePointer<AudioStreamPacketDescription>?>?,
+    _ context: UnsafeMutableRawPointer?
+) -> OSStatus {
     let reader = Unmanaged<Reader>.fromOpaque(context!).takeUnretainedValue()
-    
+
     //
     // Make sure we have a valid source format so we know the data format of the parser's audio packets
     //
     guard let sourceFormat = reader.parser.dataFormat else {
         return ReaderMissingSourceFormatError
     }
-    
+
     //
     // Check if we've reached the end of the packets. We have two scenarios:
     //     1. We've reached the end of the packet data and the file has been completely parsed
@@ -47,7 +41,7 @@ func ReaderConverterCallback(_ converter: AudioConverterRef,
             return ReaderNotEnoughDataError
         }
     }
-    
+
     //
     // Copy data over (note we've only processing a single packet of data at a time)
     //
@@ -76,6 +70,6 @@ func ReaderConverterCallback(_ converter: AudioConverterRef,
     }
     packetCount.pointee = 1
     reader.currentPacket = reader.currentPacket + 1
-    
-    return noErr;
+
+    return noErr
 }

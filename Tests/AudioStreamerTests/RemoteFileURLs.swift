@@ -13,11 +13,11 @@ enum RemoteFileURL {
     case claire
     case faithfulDog
     case theLastOnes
-    
+
     private var hostname: String {
         return "cdn.ausomeapps.com"
     }
-    
+
     var filename: String {
         switch self {
         case .brokeForFree:
@@ -30,49 +30,49 @@ enum RemoteFileURL {
             return "the-last-ones"
         }
     }
-    
+
     func resourcePathFor(_ fileExtension: String) -> URL {
         let path = "https://\(hostname)/\(filename).\(fileExtension)"
         return URL(string: path)!
     }
-    
+
     var aac: URL {
         return resourcePathFor("aac")
     }
-    
+
     var mp3: URL {
         return resourcePathFor("mp3")
     }
-    
+
     var flac: URL {
         return resourcePathFor("flac")
     }
-    
+
     var wav: URL {
         return resourcePathFor("wav")
     }
-    
+
     enum LicenseType {
         case creativeCommons
     }
-    
+
     var license: LicenseType {
         return .creativeCommons
     }
-    
+
     enum Source {
         case freeMusicArchive(songHomepageURL: URL)
-        
+
         var songHomepageURL: URL {
             var url: URL
             switch self {
-            case .freeMusicArchive(let songHomepageURL):
+            case let .freeMusicArchive(songHomepageURL):
                 url = songHomepageURL
             }
             return url
         }
     }
-    
+
     var source: Source {
         var urlString: String
         switch self {
