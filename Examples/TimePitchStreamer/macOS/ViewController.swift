@@ -16,34 +16,37 @@ class ViewController: NSViewController {
     var logger: OSLog {
         return ValueChangeController.logger
     }
-    
+
     // MARK: - Properties
-    
-    @IBOutlet weak var currentTimeLabel: NSTextField!
-    @IBOutlet weak var durationTimeLabel: NSTextField!
-    @IBOutlet weak var playbackControlsStackView: NSStackView!
-    @IBOutlet weak var playButton: NSButton! {
+
+    @IBOutlet var currentTimeLabel: NSTextField!
+    @IBOutlet var durationTimeLabel: NSTextField!
+    @IBOutlet var playbackControlsStackView: NSStackView!
+    @IBOutlet var playButton: NSButton! {
         willSet {
             newValue.setFilterColor(NSColor(red: 0.18, green: 0.243, blue: 0.345, alpha: 1))
         }
     }
-    @IBOutlet weak var progressIndicator: NSProgressIndicator! {
+
+    @IBOutlet var progressIndicator: NSProgressIndicator! {
         willSet {
             newValue.isIndeterminate = false
             newValue.setFilterColor(NSColor(red: 0.18, green: 0.243, blue: 0.345, alpha: 1))
         }
     }
-    @IBOutlet weak var seekSlider: NSSlider! {
+
+    @IBOutlet var seekSlider: NSSlider! {
         willSet {
             newValue.doubleValue = 0
             newValue.setFilterColor(NSColor(red: 0.18, green: 0.243, blue: 0.345, alpha: 1))
         }
     }
-    @IBOutlet weak var stackView: NSStackView!
-    
+
+    @IBOutlet var stackView: NSStackView!
+
     var isSeeking = false
     var seekTimer: Timer?
-    
+
     lazy var pitchController: ValueChangeController = {
         let vc = ValueChangeController()
         vc.setup(self,
@@ -55,7 +58,7 @@ class ViewController: NSViewController {
                  maxValue: 600)
         return vc
     }()
-    
+
     lazy var rateController: ValueChangeController = {
         let vc = ValueChangeController()
         vc.setup(self,
@@ -67,64 +70,63 @@ class ViewController: NSViewController {
                  maxValue: 2)
         return vc
     }()
-    
+
     lazy var streamer: TimePitchStreamer = {
         let streamer = TimePitchStreamer()
         streamer.delegate = self
         return streamer
     }()
-    
+
     // MARK: - View Lifecycle
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.wantsLayer = true
         view.layer?.backgroundColor = NSColor(red: 0.953, green: 0.965, blue: 0.984, alpha: 1).cgColor
-        
+
         /// Setup value change controllers
         stackView.addArrangedSubview(pitchController.view)
         stackView.addArrangedSubview(rateController.view)
-        
+
         /// Download
         let url = URL(string: "https://res.cloudinary.com/drvibcm45/video/upload/v1604299573/bensound-rumble_bn2ipv.mp3")!
         streamer.url = url
     }
-    
+
     // MARK: - Methods
-    
-    @IBAction func playButtonPressed(_ sender: NSButton) {
+
+    @IBAction func playButtonPressed(_: NSButton) {
         os_log("%@ - %d", log: logger, type: .debug, #function, #line)
-        
+
         if streamer.state == .playing {
             streamer.pause()
         } else {
             streamer.play()
         }
     }
-    
-    @IBAction func seekSliderValueChanged(_ sender: NSSlider) {
+
+    @IBAction func seekSliderValueChanged(_: NSSlider) {
         os_log("%@ - %d", log: logger, type: .debug, #function, #line)
-        
+
         let currentTime = TimeInterval(seekSlider.doubleValue)
         currentTimeLabel.stringValue = currentTime.toMMSS()
-        
+
         isSeeking = true
         seekTimer?.invalidate()
         seekTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(seek), userInfo: nil, repeats: false)
     }
-    
+
     @objc func seek() {
         os_log("%@ - %d", log: logger, type: .debug, #function, #line)
-        
+
         do {
             let time = TimeInterval(seekSlider.doubleValue)
             try streamer.seek(to: time)
         } catch {
             os_log("Failed to seek: %@", log: logger, type: .error, error.localizedDescription)
         }
-        
+
         isSeeking = false
     }
-
 }

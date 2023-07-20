@@ -9,17 +9,15 @@
 import Foundation
 
 protocol ValueChangeControllerDelegate: class {
-    
     /// <#Description#>
     ///
     /// - Parameters:
     ///   - controller: <#controller description#>
     ///   - value: <#value description#>
     func valueChangeController(_ controller: ValueChangeController, changedValue value: Float)
-    
+
     /// <#Description#>
     ///
     /// - Parameter controller: <#controller description#>
     func valueChangeControllerTappedResetButton(_ controller: ValueChangeController)
-    
 }

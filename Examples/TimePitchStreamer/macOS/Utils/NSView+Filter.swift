@@ -9,7 +9,6 @@
 import Cocoa
 
 extension NSView {
-    
     /// <#Description#>
     ///
     /// - Parameter color: <#color description#>
@@ -20,5 +19,4 @@ extension NSView {
         colorFilter.setValue(CIColor(cgColor: color.cgColor), forKey: "inputColor1")
         contentFilters = [colorFilter]
     }
-    
 }
