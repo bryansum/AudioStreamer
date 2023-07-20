@@ -6,8 +6,8 @@
 //  Copyright © 2018 Ausome Apps LLC. All rights reserved.
 //
 
-import Foundation
 import AudioToolbox
+import Foundation
 
 /// Possible errors that can result from the `Parser` class.
 ///
@@ -16,16 +16,16 @@ import AudioToolbox
 public enum ParserError: LocalizedError {
     case streamCouldNotOpen
     case failedToParseBytes(OSStatus)
-    
+
     public var errorDescription: String? {
         switch self {
         case .streamCouldNotOpen:
             return "Could not open stream for parsing"
-        case .failedToParseBytes(let status):
+        case let .failedToParseBytes(status):
             return localizedDescriptionFromParseError(status)
         }
     }
-    
+
     func localizedDescriptionFromParseError(_ status: OSStatus) -> String {
         switch status {
         case kAudioFileStreamError_UnsupportedFileType:
