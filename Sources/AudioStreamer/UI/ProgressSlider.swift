@@ -6,6 +6,8 @@
 //  Copyright © 2018 Ausome Apps LLC. All rights reserved.
 //
 
+#if canImport(UIKit)
+
 import UIKit
 import os.log
 
@@ -87,3 +89,5 @@ public class ProgressSlider: UISlider {
     }
     
 }
+
+#endif // canImport(UIKit)
