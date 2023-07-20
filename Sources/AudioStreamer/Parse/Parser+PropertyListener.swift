@@ -6,13 +6,13 @@
 //  Copyright © 2018 Ausome Apps LLC. All rights reserved.
 //
 
-import Foundation
 import AVFoundation
+import Foundation
 import os.log
-       
-func ParserPropertyChangeCallback(_ context: UnsafeMutableRawPointer, _ streamID: AudioFileStreamID, _ propertyID: AudioFileStreamPropertyID, _ flags: UnsafeMutablePointer<AudioFileStreamPropertyFlags>) {
+
+func ParserPropertyChangeCallback(_ context: UnsafeMutableRawPointer, _ streamID: AudioFileStreamID, _ propertyID: AudioFileStreamPropertyID, _: UnsafeMutablePointer<AudioFileStreamPropertyFlags>) {
     let parser = Unmanaged<Parser>.fromOpaque(context).takeUnretainedValue()
-    
+
     /// Parse the various properties
     switch propertyID {
     case kAudioFileStreamProperty_DataFormat:
@@ -20,7 +20,7 @@ func ParserPropertyChangeCallback(_ context: UnsafeMutableRawPointer, _ streamID
         GetPropertyValue(&format, streamID, propertyID)
         parser.dataFormat = AVAudioFormat(streamDescription: &format)
         os_log("Data format: %@", log: Parser.loggerPropertyListenerCallback, type: .debug, String(describing: parser.dataFormat))
-        
+
     case kAudioFileStreamProperty_AudioDataPacketCount:
         GetPropertyValue(&parser.packetCount, streamID, propertyID)
         os_log("Packet count: %i", log: Parser.loggerPropertyListenerCallback, type: .debug, parser.packetCount)
@@ -38,22 +38,22 @@ func ParserPropertyChangeCallback(_ context: UnsafeMutableRawPointer, _ streamID
 ///   - value: A value of the expected type of the underlying property
 ///   - streamID: An `AudioFileStreamID` representing the current audio file stream parser.
 ///   - propertyID: An `AudioFileStreamPropertyID` representing the particular property to get.
-func GetPropertyValue<T>(_ value: inout T, _ streamID: AudioFileStreamID, _ propertyID: AudioFileStreamPropertyID) {
+func GetPropertyValue(_ value: UnsafeMutableRawPointer, _ streamID: AudioFileStreamID, _ propertyID: AudioFileStreamPropertyID) {
     var propSize: UInt32 = 0
     guard AudioFileStreamGetPropertyInfo(streamID, propertyID, &propSize, nil) == noErr else {
         os_log("Failed to get info for property: %@", log: Parser.loggerPropertyListenerCallback, type: .error, String(describing: propertyID))
         return
     }
-    
-    guard AudioFileStreamGetProperty(streamID, propertyID, &propSize, &value) == noErr else {
+
+    guard AudioFileStreamGetProperty(streamID, propertyID, &propSize, value) == noErr else {
         os_log("Failed to get value [%@]", log: Parser.loggerPropertyListenerCallback, type: .error, String(describing: propertyID))
         return
     }
 }
 
 /// This extension just helps us print out the name of an `AudioFileStreamPropertyID`. Purely for debugging and not essential to the main functionality of the parser.
-extension AudioFileStreamPropertyID {
-    public var description: String {
+public extension AudioFileStreamPropertyID {
+    var description: String {
         switch self {
         case kAudioFileStreamProperty_ReadyToProducePackets:
             return "Ready to produce packets"
