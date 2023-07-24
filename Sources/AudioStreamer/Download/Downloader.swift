@@ -52,6 +52,9 @@ public class Downloader: NSObject, Downloading {
         }
     }
 
+    /// These fields will be added to a URL request. Must be specified before setting `url`.
+    public var headerFields: [String: String]?
+
     public var url: URL? {
         didSet {
             if state == .started {
@@ -63,7 +66,16 @@ public class Downloader: NSObject, Downloading {
                 state = .notStarted
                 totalBytesCount = 0
                 totalBytesReceived = 0
-                task = session.dataTask(with: url)
+
+                var request = URLRequest(url: url)
+                if let headerFields {
+                    for (key, value) in headerFields {
+                        request.setValue(value, forHTTPHeaderField: key)
+                    }
+                }
+                task = session.dataTask(
+                    with: request
+                )
             } else {
                 task = nil
             }
