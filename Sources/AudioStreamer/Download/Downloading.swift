@@ -24,6 +24,9 @@ public protocol Downloading: AnyObject {
     /// The current state of the downloader. See `DownloadingState` for the different possible states.
     var state: DownloadingState { get }
 
+    /// These fields will be added to a URL request. Must be specified before setting `url`.
+    var headerFields: [String: String]? { get set }
+
     /// A `URL` representing the current URL the downloader is fetching. This is an optional because this protocol is designed to allow classes implementing the `Downloading` protocol to be used as singletons for many different URLS so a common cache can be used to redownloading the same resources.
     var url: URL? { get set }
 

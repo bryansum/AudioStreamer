@@ -46,4 +46,11 @@ public protocol StreamingDelegate: AnyObject {
     ///   - streamer: The current `Streaming` instance
     ///   - duration: A `TimeInterval` representing the new duration value.
     func streamer(_ streamer: Streaming, updatedDuration duration: TimeInterval)
+
+    /// Triggered when the streamer reached the end of playback
+    ///
+    /// - Parameters:
+    ///   - streamer: The current `Streaming` instance
+    ///   - url: A `URL` representing the current resource the event is for.
+    func streamer(_ streamer: Streaming, didReachEndOfPlaybackForURL url: URL)
 }

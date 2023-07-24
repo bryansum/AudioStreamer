@@ -286,6 +286,9 @@ open class Streamer: Streaming {
         } catch ReaderError.reachedEndOfFile {
             os_log("Scheduler reached end of file", log: Streamer.logger, type: .debug)
             isFileSchedulingComplete = true
+            DispatchQueue.main.async {
+                self.notifyEndOfPlayback()
+            }
         } catch {
             os_log("Cannot schedule buffer: %@", log: Streamer.logger, type: .debug, error.localizedDescription)
         }
@@ -352,5 +355,13 @@ open class Streamer: Streaming {
         }
 
         delegate?.streamer(self, updatedCurrentTime: currentTime)
+    }
+
+    func notifyEndOfPlayback() {
+        guard let url = url else {
+            return
+        }
+
+        delegate?.streamer(self, didReachEndOfPlaybackForURL: url)
     }
 }
