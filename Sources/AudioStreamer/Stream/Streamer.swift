@@ -44,6 +44,8 @@ open class Streamer: Streaming {
         }
     }
 
+    private var timer: Timer?
+
     public var url: URL? {
         didSet {
             reset()
@@ -82,6 +84,10 @@ open class Streamer: Streaming {
         setupAudioEngine()
     }
 
+    deinit {
+        timer?.invalidate()
+    }
+
     // MARK: - Setup
 
     func setupAudioEngine() {
@@ -98,7 +104,7 @@ open class Streamer: Streaming {
 
         /// Use timer to schedule the buffers (this is not ideal, wish AVAudioEngine provided a pull-model for scheduling buffers)
         let interval = 1 / (readFormat.sampleRate / Double(readBufferSize))
-        let timer = Timer(timeInterval: interval / 2, repeats: true) {
+        timer = Timer(timeInterval: interval / 2, repeats: true) {
             [weak self] _ in
             guard self?.state != .stopped else {
                 return
@@ -108,7 +114,7 @@ open class Streamer: Streaming {
             self?.handleTimeUpdate()
             self?.notifyTimeUpdated()
         }
-        RunLoop.current.add(timer, forMode: .common)
+        RunLoop.current.add(timer!, forMode: .common)
     }
 
     /// Subclass can override this to attach additional nodes to the engine before it is prepared. Default implementation attaches the `playerNode`. Subclass should call super or be sure to attach the playerNode.
