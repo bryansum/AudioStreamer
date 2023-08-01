@@ -28,8 +28,18 @@ public class Downloader: NSObject, Downloading {
         }
     }
 
+    private lazy var queue = DispatchQueue(label: "com.fastlearner.streamer.Downloader")
+
     /// The `URLSession` currently being used as the HTTP/HTTPS implementation for the downloader.
-    fileprivate lazy var session: URLSession = .init(configuration: .default, delegate: self, delegateQueue: nil)
+    fileprivate lazy var session: URLSession = .init(
+        configuration: .default,
+        delegate: self,
+        delegateQueue: {
+            let operationQueue = OperationQueue()
+            operationQueue.underlyingQueue = queue
+            return operationQueue
+        }()
+    )
 
     /// A `URLSessionDataTask` representing the data operation for the current `URL`.
     fileprivate var task: URLSessionDataTask?
@@ -61,21 +71,26 @@ public class Downloader: NSObject, Downloading {
                 stop()
             }
 
-            if let url = url {
+            if let url {
                 progress = 0.0
                 state = .notStarted
                 totalBytesCount = 0
                 totalBytesReceived = 0
 
-                var request = URLRequest(url: url)
-                if let headerFields {
-                    for (key, value) in headerFields {
-                        request.setValue(value, forHTTPHeaderField: key)
+                if url.isFileURL {
+                    // If it's a file URL, we don't need a task.
+                    task = nil
+                } else {
+                    var request = URLRequest(url: url)
+                    if let headerFields {
+                        for (key, value) in headerFields {
+                            request.setValue(value, forHTTPHeaderField: key)
+                        }
                     }
+                    task = session.dataTask(
+                        with: request
+                    )
                 }
-                task = session.dataTask(
-                    with: request
-                )
             } else {
                 task = nil
             }
@@ -87,23 +102,49 @@ public class Downloader: NSObject, Downloading {
     public func start() {
         os_log("%@ - %d [%@]", log: Downloader.logger, type: .debug, #function, #line, String(describing: url))
 
-        guard let task = task else {
-            return
-        }
+        if let url, url.isFileURL {
+            queue.async { [self] in
+                // Handle local file URL
+                do {
+                    let data = try Data(contentsOf: url)
+                    DispatchQueue.main.async { [self] in
+                        totalBytesCount = Int64(data.count)
+                        totalBytesReceived = Int64(data.count)
+                        progress = 1.0
 
-        switch state {
-        case .completed, .started:
-            return
-        default:
-            state = .started
-            task.resume()
+                        // Call progress and completion handlers.
+                        progressHandler?(data, progress)
+                        state = .completed
+                        completionHandler?(nil)
+                        delegate?.download(self, completedWithError: nil)
+                    }
+                } catch {
+                    DispatchQueue.main.async { [self] in
+                        state = .completed
+                        completionHandler?(error)
+                        delegate?.download(self, completedWithError: error)
+                    }
+                }
+            }
+        } else {
+            guard let task else {
+                return
+            }
+
+            switch state {
+            case .completed, .started:
+                return
+            default:
+                state = .started
+                task.resume()
+            }
         }
     }
 
     public func pause() {
         os_log("%@ - %d", log: Downloader.logger, type: .debug, #function, #line)
 
-        guard let task = task else {
+        guard let task else {
             return
         }
 
@@ -118,7 +159,7 @@ public class Downloader: NSObject, Downloading {
     public func stop() {
         os_log("%@ - %d", log: Downloader.logger, type: .debug, #function, #line)
 
-        guard let task = task else {
+        guard let task else {
             return
         }
 
